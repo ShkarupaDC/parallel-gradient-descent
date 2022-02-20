@@ -29,3 +29,6 @@
 
 # Build
 build
+
+# IDE
+.vscode
