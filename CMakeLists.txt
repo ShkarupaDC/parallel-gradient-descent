@@ -13,7 +13,7 @@ project(
   LANGUAGES CXX)
 
 # Compiler configuration
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -21,8 +21,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 # Executable
-set(SOURCES src/main.cpp src/regression.cpp src/core.cpp src/utils.cpp
-            src/arg_parser.cpp)
+set(SOURCES
+    src/main.cpp
+    src/interface.cpp
+    src/core.cpp
+    src/sgd.cpp
+    src/parallel_sgd.cpp
+    src/utils.cpp
+    src/arg_parser.cpp)
 add_executable(gradient_descent ${SOURCES})
 
 # Xtensor
@@ -47,7 +53,7 @@ message(STATUS "BLAS LIBRARIES: " ${BLAS_LIBRARIES})
 find_package(Boost 1.78 REQUIRED COMPONENTS program_options)
 
 # Include headers
-set(INCLUDES include ${xtensor_INCLUDE_DIRS})
+set(INCLUDES include src ${xtensor_INCLUDE_DIRS})
 target_include_directories(gradient_descent PUBLIC ${INCLUDES})
 
 # Link external libraries

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include "gradient_descent/arg_parser.hpp"
+#include "arg_parser.hpp"
 
 po::variables_map parse_args(int argc, char* argv[])
 {
@@ -47,8 +47,8 @@ po::variables_map parse_args(int argc, char* argv[])
             exit(0);
         }
         return args;
-    } catch (std::exception& error) {
+    } catch (const std::exception& error) {
         std::cerr << error.what() << std::endl;
-        exit(1);
+        throw;
     }
 }

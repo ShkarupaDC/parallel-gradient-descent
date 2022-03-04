@@ -3,13 +3,14 @@
 #include <xtensor/xio.hpp>
 #include <xtensor/xrandom.hpp>
 
-#include "gradient_descent/arg_parser.hpp"
-#include "gradient_descent/regression.hpp"
+#include "arg_parser.hpp"
+#include "gradient_descent/parallel_sgd.hpp"
+#include "gradient_descent/sgd.hpp"
 
 int main(int argc, char* argv[])
 {
     auto args = parse_args(argc, argv);
-    auto regression = LinearRegression { 10, 0.01, 0.001, true };
+    auto regression = LinearRegression::ParallelSGD { 10, 0.01, 0.001, true };
     // Fit
     Matrix train_input = xt::random::randn({ 200, 10 }, 0.0, 1.0);
     Matrix train_target = xt::random::randn({ 200, 1 }, 0.0, 1.0);
