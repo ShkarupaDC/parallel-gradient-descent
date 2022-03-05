@@ -2,9 +2,9 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <functional>
 #include <memory>
 #include <optional>
-#include <queue>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -31,7 +31,7 @@ public:
     void stop();
 
 private:
-    std::shared_ptr<SyncState> state;
+    mutable std::shared_ptr<SyncState> state;
     std::optional<std::function<void()>> task { std::nullopt };
     std::atomic<bool> finished { false };
     std::thread thread;
@@ -47,26 +47,26 @@ protected:
     std::vector<double> optimize(const Matrix& input, const Matrix& target) override;
 
 private:
-    std::vector<std::unique_ptr<Worker>> create_workers();
+    std::vector<std::unique_ptr<Worker>> create_workers() const;
 
-    std::vector<std::pair<Matrix, Matrix>> split_data(const Matrix& input, const Matrix& target);
+    std::vector<std::pair<Matrix, Matrix>> make_data_chunks(const Matrix& input, const Matrix& target) const;
 
     std::function<void()> make_task(const Matrix& input, const Matrix& target);
 
-    void distribute_tasks(const std::vector<std::unique_ptr<Worker>>& workers, std::vector<std::pair<Matrix, Matrix>>& data);
+    void distribute_tasks(const std::vector<std::unique_ptr<Worker>>& workers, const std::vector<std::pair<Matrix, Matrix>>& chunks);
 
-    void wait_all_finished();
+    void wait_all_finished() const;
 
     void update_params();
 
     double compute_cost(const Matrix& input, const Matrix& target) const;
 
-    void stop_workers(const std::vector<std::unique_ptr<Worker>>& workers);
+    void stop_workers(const std::vector<std::unique_ptr<Worker>>& workers) const;
 
     unsigned num_step_epochs;
     unsigned num_threads;
 
-    std::shared_ptr<SyncState> state;
+    mutable std::shared_ptr<SyncState> state;
     std::vector<Params> all_params;
 };
 

@@ -1,28 +1,55 @@
+#include <fstream>
 #include <iostream>
+#include <memory>
+#include <sstream>
+#include <stdexcept>
 
 #include <xtensor/xio.hpp>
-#include <xtensor/xrandom.hpp>
+#include <xtensor/xnpy.hpp>
 
 #include "arg_parser.hpp"
 #include "gradient_descent/parallel_sgd.hpp"
 #include "gradient_descent/sgd.hpp"
 
+using namespace LinearRegression;
+
+void make_prediction(const po::variables_map& args)
+{
+    // Regression
+    auto num_epochs = args["num-epochs"].as<unsigned>();
+    auto learning_rate = args["lr"].as<double>();
+    auto weight_decay = args["weight-decay"].as<double>();
+    auto normalize = args["normalize"].as<bool>();
+
+    std::unique_ptr<Interface> regression;
+    if (!args["parallel"].as<bool>()) {
+        regression = std::make_unique<SGD>(num_epochs, learning_rate, weight_decay, normalize);
+    } else {
+        auto num_threads = args["num-threads"].as<unsigned>();
+        auto num_step_epochs = args["num-step-epochs"].as<unsigned>();
+        regression = std::make_unique<ParallelSGD>(num_epochs, learning_rate, weight_decay, normalize, num_step_epochs, num_threads);
+    }
+    // Fit
+    auto input_path = args["input-path"].as<std::string>();
+    auto target_path = args["target-path"].as<std::string>();
+
+    Matrix input = xt::load_npy<double>(input_path);
+    Matrix target = xt::load_npy<double>(target_path);
+    regression->fit(input, target);
+
+    // Predict
+    auto eval_path = args["eval-path"].as<std::string>();
+    Matrix eval = xt::load_npy<double>(eval_path);
+    Matrix prediction = regression->predict(eval);
+
+    auto out_path = args["out-path"].as<std::string>();
+    xt::dump_npy(out_path, prediction);
+    std::cout << "Weight:\n"
+              << regression->get_params().weight << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
-    auto args = parse_args(argc, argv);
-    auto regression = LinearRegression::ParallelSGD { 10, 0.01, 0.001, true };
-    // Fit
-    Matrix train_input = xt::random::randn({ 200, 10 }, 0.0, 1.0);
-    Matrix train_target = xt::random::randn({ 200, 1 }, 0.0, 1.0);
-    regression.fit(train_input, train_target);
-    // Predict
-    Matrix test_input = xt::random::randn({ 50, 10 }, 0.0, 1.0);
-    Matrix result = regression.predict(test_input);
-    // Print parameters
-    auto params = regression.get_params();
-    std::cout << "Weight:\n"
-              << params.weight << std::endl;
-    std::cout << "Bias:\n"
-              << params.bias << std::endl;
+    make_prediction(parse_args(argc, argv));
     return 0;
 }

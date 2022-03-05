@@ -1,3 +1,5 @@
+#include "profiler.hpp"
+
 #include "gradient_descent/interface.hpp"
 #include "gradient_descent/utils.hpp"
 
@@ -16,7 +18,9 @@ Interface::Interface(unsigned num_epochs, double learning_rate, double weight_de
 void Interface::fit(const Matrix& input, const Matrix& target)
 {
     this->core.init_params(input, target);
-    this->optimize(this->normalize ? this->scaler.fit_transform(input) : input, target);
+    auto processed = this->normalize ? this->scaler.fit_transform(input) : std::move(input);
+    LOG_DURATION("SGD");
+    this->optimize(processed, target);
 }
 
 Matrix Interface::predict(const Matrix& input) const

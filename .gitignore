@@ -32,3 +32,18 @@ build
 
 # IDE
 .vscode
+
+# Byte-compiled / optimized / DLL files
+__pycache__
+
+# Installer logs
+pip-log.txt
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environments
+.venv
+
+# Develompent
+data
