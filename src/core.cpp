@@ -33,29 +33,28 @@ void Core::init_params(const Matrix& input, const Matrix& target)
 
 Matrix Core::compute_prediction(const Matrix& input) const
 {
-    return xt::linalg::dot(input, this->params.weight) + params.bias;
+    return xt::linalg::dot(input, this->params.weight) + this->params.bias;
 }
 
 double Core::compute_cost(const Matrix& prediction, const Matrix& target) const
 {
     auto cost_term = self_dot(prediction - target);
-    auto reg_term = self_dot(this->params.weight);
+    auto reg_term = this->weight_decay * self_dot(this->params.weight);
 
-    int num_samples = target.shape(0);
+    double num_samples = target.shape(0);
     return 1 / (2 * num_samples) * (cost_term + reg_term);
 }
 
 Params Core::compute_grads(const Matrix& input, const Matrix& prediction, const Matrix& target) const
 {
-    int num_samples = target.shape(0);
+    double num_samples = target.shape(0);
     auto error = prediction - target;
 
     auto dcost_dweight = xt::linalg::dot(xt::transpose(input), error);
     auto dreg_dweight = this->weight_decay * this->params.weight;
 
     auto dweight = 1 / num_samples * (std::move(dcost_dweight) + std::move(dreg_dweight));
-    auto dbias = xt::mean(std::move(error), { 0 })();
-
+    auto dbias = xt::mean(std::move(error))();
     return { std::move(dweight), dbias };
 }
 

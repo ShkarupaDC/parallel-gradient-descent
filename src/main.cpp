@@ -1,10 +1,9 @@
+#include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 
-#include <xtensor/xio.hpp>
 #include <xtensor/xnpy.hpp>
 
 #include "arg_parser.hpp"
@@ -12,6 +11,7 @@
 #include "gradient_descent/sgd.hpp"
 
 using namespace LinearRegression;
+namespace fs = std::filesystem;
 
 void make_prediction(const po::variables_map& args)
 {
@@ -42,10 +42,13 @@ void make_prediction(const po::variables_map& args)
     Matrix eval = xt::load_npy<double>(eval_path);
     Matrix prediction = regression->predict(eval);
 
-    auto out_path = args["out-path"].as<std::string>();
+    fs::path out_path(args["out-path"].as<std::string>());
+    auto parent_dir = out_path.parent_path();
+
+    if (!fs::is_directory(parent_dir) || !fs::exists(parent_dir)) {
+        fs::create_directories(parent_dir);
+    }
     xt::dump_npy(out_path, prediction);
-    std::cout << "Weight:\n"
-              << regression->get_params().weight << std::endl;
 }
 
 int main(int argc, char* argv[])

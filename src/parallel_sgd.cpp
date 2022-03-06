@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <random>
 
 #include <xtensor/xadapt.hpp>
@@ -34,15 +35,16 @@ void Worker::run()
         this->state->cv_task.wait(lock, [this]() {
             return this->finished.load() || this->task.has_value();
         });
+        lock.unlock();
         if (this->finished.load()) {
             break;
         } else {
-            lock.unlock();
             this->task.value()();
 
             lock.lock();
             this->task.reset();
             this->state->cv_finished.notify_one();
+            std::cout << "Notify main from " << std::this_thread::get_id() << std::endl;
         }
     }
 }
@@ -113,6 +115,7 @@ void ParallelSGD::distribute_tasks(const std::vector<std::unique_ptr<Worker>>& w
         auto task = this->make_task(input, target);
         workers[idx]->set_task(task);
     }
+    std::cout << "Distribute tasks" << std::endl;
     this->state->cv_task.notify_all();
 }
 
@@ -122,6 +125,7 @@ void ParallelSGD::wait_all_finished() const
     this->state->cv_finished.wait(lock, [this]() {
         return this->all_params.size() == this->num_threads;
     });
+    std::cout << "Wait" << std::endl;
 }
 
 void ParallelSGD::update_params()
@@ -141,7 +145,10 @@ void ParallelSGD::update_params()
                           std::mem_fn(&Params::bias))
         / this->num_threads;
     this->core.set_params({ std::move(new_weight), new_bias });
+
+    std::lock_guard<std::mutex> lock(this->state->mutex);
     this->all_params.clear();
+    std::cout << "Update params" << std::endl;
 }
 
 double ParallelSGD::compute_cost(const Matrix& input, const Matrix& target) const
@@ -170,6 +177,7 @@ std::vector<double> ParallelSGD::optimize(const Matrix& input, const Matrix& tar
 
     auto engine = std::default_random_engine();
     for (unsigned epoch = 0; epoch < num_epochs; ++epoch) {
+        std::cout << "Epoch: " << epoch << std::endl;
         std::shuffle(chunks.begin(), chunks.end(), engine);
 
         this->distribute_tasks(workers, chunks);

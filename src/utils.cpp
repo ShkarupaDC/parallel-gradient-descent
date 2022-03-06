@@ -19,5 +19,5 @@ Matrix Scaler::transform(const Matrix& input) const
 
 double self_dot(const Matrix& matrix)
 {
-    return xt::linalg::dot(matrix, xt::transpose(matrix))();
+    return xt::linalg::dot(xt::transpose(matrix), matrix)();
 }

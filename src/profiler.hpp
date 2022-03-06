@@ -17,7 +17,7 @@ public:
         auto finish = std::chrono::steady_clock::now();
         auto duration = finish - this->start;
         std::cerr << this->message
-                  << std::chrono::duration_cast<std::chrono::microseconds>(duration).count()
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()
                   << " ms" << std::endl;
     }
 

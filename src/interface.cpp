@@ -20,7 +20,7 @@ void Interface::fit(const Matrix& input, const Matrix& target)
     this->core.init_params(input, target);
     auto processed = this->normalize ? this->scaler.fit_transform(input) : std::move(input);
     LOG_DURATION("SGD");
-    this->optimize(processed, target);
+    this->optimize(std::move(processed), target);
 }
 
 Matrix Interface::predict(const Matrix& input) const
