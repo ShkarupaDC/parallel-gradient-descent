@@ -19,6 +19,11 @@ const Params& Core::get_params() const
     return this->params;
 }
 
+Params&& Core::get_params()
+{
+    return std::move(this->params);
+}
+
 void Core::set_params(const Params& params)
 {
     this->params = params;

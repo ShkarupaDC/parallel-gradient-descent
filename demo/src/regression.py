@@ -10,7 +10,7 @@ DataSplit = tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
 def generate_data(
     n_train: int, n_eval: int, n_features: int, seed: Optional[int] = None
 ) -> DataSplit:
-    n_informative = random.randint(2, 8)
+    n_informative = int(random.uniform(0, 1) * n_features)
     n_samples = n_train + n_eval
 
     noise = random.uniform(0, 5)

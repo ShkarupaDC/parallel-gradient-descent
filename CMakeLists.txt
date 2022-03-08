@@ -27,6 +27,7 @@ set(SOURCES
     src/core.cpp
     src/sgd.cpp
     src/parallel_sgd.cpp
+    src/thread_pool.cpp
     src/utils.cpp
     src/arg_parser.cpp)
 add_executable(gradient_descent ${SOURCES})

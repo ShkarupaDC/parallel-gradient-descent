@@ -15,6 +15,8 @@ public:
 
     const Params& get_params() const;
 
+    Params&& get_params();
+
     void set_params(const Params& params);
 
     void init_params(const Matrix& input, const Matrix& target);
