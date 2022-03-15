@@ -7,14 +7,14 @@
 
 Matrix Scaler::fit_transform(const Matrix& input)
 {
-    this->std = xt::stddev(input, { 0 }, xt::keep_dims);
-    this->mean = xt::mean(input, { 0 }, xt::keep_dims);
-    return this->transform(input);
+    std = xt::stddev(input, { 0 }, xt::keep_dims);
+    mean = xt::mean(input, { 0 }, xt::keep_dims);
+    return transform(input);
 }
 
 Matrix Scaler::transform(const Matrix& input) const
 {
-    return (input - this->mean) / xt::maximum(this->std, DBL_EPSILON);
+    return (input - mean) / xt::maximum(std, DBL_EPSILON);
 }
 
 double self_dot(const Matrix& matrix)

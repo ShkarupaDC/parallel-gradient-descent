@@ -32,6 +32,9 @@ set(SOURCES
     src/arg_parser.cpp)
 add_executable(gradient_descent ${SOURCES})
 
+# C++ threads
+find_package(Threads REQUIRED)
+
 # Xtensor
 find_package(xtl REQUIRED)
 find_package(xtensor REQUIRED)
@@ -58,6 +61,6 @@ set(INCLUDES include src ${xtensor_INCLUDE_DIRS})
 target_include_directories(gradient_descent PUBLIC ${INCLUDES})
 
 # Link external libraries
-set(LIBRARIES xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}
+set(LIBRARIES Threads::Threads xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}
               Boost::program_options)
 target_link_libraries(gradient_descent PUBLIC ${LIBRARIES})

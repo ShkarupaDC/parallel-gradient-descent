@@ -15,8 +15,8 @@ public:
     ~DurationLogger()
     {
         auto finish = std::chrono::steady_clock::now();
-        auto duration = finish - this->start;
-        std::cerr << this->message
+        auto duration = finish - start;
+        std::cerr << message
                   << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()
                   << " ms" << std::endl;
     }

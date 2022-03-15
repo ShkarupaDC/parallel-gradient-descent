@@ -5,32 +5,32 @@
 
 namespace LinearRegression {
 
-Interface::Interface(unsigned num_epochs, double learning_rate, double weight_decay, bool normalize)
+Interface::Interface(unsigned num_epochs, double learning_rate, double weight_decay, bool normalize) noexcept
     : num_epochs(num_epochs)
     , normalize(normalize)
     , core(learning_rate, weight_decay)
 {
-    if (this->normalize) {
-        this->scaler = Scaler();
+    if (Interface::normalize) {
+        scaler = Scaler();
     }
 }
 
 void Interface::fit(const Matrix& input, const Matrix& target)
 {
-    this->core.init_params(input, target);
-    auto processed = this->normalize ? this->scaler.fit_transform(input) : std::move(input);
+    core.init_params(input, target);
+    auto processed = normalize ? scaler.fit_transform(input) : input;
     LOG_DURATION("SGD");
-    this->optimize(std::move(processed), target);
+    optimize(processed, target);
 }
 
 Matrix Interface::predict(const Matrix& input) const
 {
-    return this->core.compute_prediction(this->normalize ? this->scaler.transform(input) : input);
+    return core.compute_prediction(normalize ? scaler.transform(input) : input);
 }
 
 const Params& Interface::get_params() const
 {
-    return this->core.get_params();
+    return core.get_params();
 }
 
 }

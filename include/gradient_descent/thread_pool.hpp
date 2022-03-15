@@ -39,12 +39,12 @@ decltype(auto) ThreadPool::add_task(Fn&& fn, Args&&... args)
 
     std::future<return_type> future = task.get_future();
     {
-        std::lock_guard<std::mutex> lock(this->mutex);
-        if (this->is_stopped) {
+        std::lock_guard<std::mutex> lock(mutex);
+        if (is_stopped.load()) {
             throw std::runtime_error("thread pool was stopped");
         }
-        this->tasks.emplace(std::move(task));
+        tasks.emplace(std::move(task));
     }
-    this->cv_task.notify_one();
+    cv_task.notify_one();
     return future;
 }

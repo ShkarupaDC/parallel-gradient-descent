@@ -1,5 +1,3 @@
-#include "profiler.hpp"
-
 #include <algorithm>
 #include <cmath>
 #include <future>
@@ -12,10 +10,16 @@
 
 namespace LinearRegression {
 
-ParallelSGD::ParallelSGD(unsigned num_epochs, double learning_rate, double weight_decay, bool normalize, unsigned num_step_epochs, unsigned num_threads)
+ParallelSGD::ParallelSGD(
+    unsigned num_epochs,
+    double learning_rate,
+    double weight_decay,
+    bool normalize,
+    unsigned thread_epochs,
+    unsigned num_threads) noexcept
     : Interface(num_epochs, learning_rate, weight_decay, normalize)
     , pool(num_threads)
-    , num_step_epochs(num_step_epochs)
+    , thread_epochs(thread_epochs)
     , num_threads(num_threads)
 {
 }
@@ -23,12 +27,12 @@ ParallelSGD::ParallelSGD(unsigned num_epochs, double learning_rate, double weigh
 std::vector<ParallelSGD::Chunk> ParallelSGD::get_data_chunks(const Matrix& input, const Matrix& target) const
 {
     int num_samples = input.shape(0);
-    int split_size = ceil(num_samples / (float)this->num_threads);
+    int split_size = ceil(num_samples / (float)num_threads);
 
     std::vector<Chunk> chunks;
-    chunks.reserve(this->num_threads);
+    chunks.reserve(num_threads);
 
-    for (unsigned idx = 0; idx < this->num_threads; ++idx) {
+    for (unsigned idx = 0; idx < num_threads; ++idx) {
         int start = idx * split_size;
         int end = std::min(start + split_size, num_samples);
 
@@ -42,29 +46,31 @@ std::vector<ParallelSGD::Chunk> ParallelSGD::get_data_chunks(const Matrix& input
 
 Params ParallelSGD::task(const Matrix& input, const Matrix& target) const
 {
-    auto new_core = this->core;
-    for (unsigned epoch = 0; epoch < this->num_step_epochs; ++epoch) {
-        new_core.optimize_step(
-            input, new_core.compute_prediction(input), target);
+    auto thread_core = core;
+    for (unsigned epoch = 0; epoch < thread_epochs; ++epoch) {
+        thread_core.optimize_step(
+            input, thread_core.compute_prediction(input), target);
     }
-    return std::move(new_core.get_params());
+    return thread_core.get_params();
 }
 
 std::vector<Params> ParallelSGD::optimize_parallel(const std::vector<Chunk>& chunks)
 {
     std::vector<std::future<Params>> futures;
-    futures.reserve(this->num_threads);
+    futures.reserve(num_threads);
 
     for (const auto& chunk : chunks) {
-        futures.push_back(this->pool.add_task(&ParallelSGD::task, this, chunk.input, chunk.target));
+        futures.push_back(pool.add_task(
+            &ParallelSGD::task,
+            this,
+            std::ref(chunk.input),
+            std::ref(chunk.target)));
     }
-
     std::vector<Params> params;
-    params.reserve(this->num_threads);
+    params.reserve(num_threads);
 
-    for (auto&& future : futures) {
-        params.emplace_back(future.get());
-    }
+    for (auto&& future : futures)
+        params.push_back(future.get());
     return params;
 }
 
@@ -73,18 +79,18 @@ void ParallelSGD::update_params(const std::vector<Params>& params)
     Matrix new_weight = std::transform_reduce(
                             params.cbegin(),
                             params.cend(),
-                            xt::zeros_like(this->get_params().weight),
+                            xt::zeros_like(get_params().weight),
                             std::plus<>(),
                             std::mem_fn(&Params::weight))
-        / this->num_threads;
+        / num_threads;
     double new_bias = std::transform_reduce(
                           params.cbegin(),
                           params.cend(),
                           0.0,
                           std::plus<>(),
                           std::mem_fn(&Params::bias))
-        / this->num_threads;
-    this->core.set_params({ std::move(new_weight), new_bias });
+        / num_threads;
+    core.set_params({ std::move(new_weight), new_bias });
 }
 
 std::vector<double> ParallelSGD::optimize(const Matrix& input, const Matrix& target)
@@ -92,28 +98,14 @@ std::vector<double> ParallelSGD::optimize(const Matrix& input, const Matrix& tar
     auto engine = std::default_random_engine();
     std::vector<double> costs(num_epochs);
 
-    std::vector<ParallelSGD::Chunk> chunks = [this, &input, &target]() {
-        // LOG_DURATION("Generate data chunks");
-        return this->get_data_chunks(input, target);
-    }();
-    for (unsigned epoch = 0; epoch < this->num_epochs / this->num_step_epochs; ++epoch) {
-        // std::cout << "Epoch: " << epoch << std::endl;
+    auto chunks = get_data_chunks(input, target);
+    for (unsigned epoch = 0; epoch < num_epochs / thread_epochs; ++epoch) {
         std::shuffle(chunks.begin(), chunks.end(), engine);
 
-        std::vector<Params> params = [this, &chunks]() {
-            // LOG_DURATION("Optimize parallel");
-            return this->optimize_parallel(chunks);
-        }();
-        {
-            // LOG_DURATION("Update params");
-            this->update_params(std::move(params));
-        }
-        {
-            // LOG_DURATION("Compute cost");
-            costs[epoch] = this->core.compute_cost(this->core.compute_prediction(input), target);
-        }
+        auto params = optimize_parallel(chunks);
+        update_params(params);
+        costs[epoch] = core.compute_cost(core.compute_prediction(input), target);
     }
     return costs;
 }
-
 }

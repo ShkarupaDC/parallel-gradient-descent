@@ -11,11 +11,9 @@ namespace LinearRegression {
 
 class Core {
 public:
-    explicit Core(double learning_rate, double weight_decay);
+    explicit Core(double learning_rate, double weight_decay) noexcept;
 
     const Params& get_params() const;
-
-    Params&& get_params();
 
     void set_params(const Params& params);
 
@@ -28,13 +26,13 @@ public:
     void optimize_step(const Matrix& input, const Matrix& prediction, const Matrix& target);
 
 private:
-    Params compute_grads(const Matrix& input, const Matrix& prediction, const Matrix& target) const;
+    Params compute_grads(const Matrix& input, const Matrix& error) const;
 
     void update_params(const Params& grads);
 
     Params params;
-    double learning_rate;
-    double weight_decay;
+    const double learning_rate;
+    const double weight_decay;
 };
 
 }
