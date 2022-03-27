@@ -19,16 +19,17 @@ public:
         unsigned num_threads = std::max(1u, std::thread::hardware_concurrency() - 1)) noexcept;
 
 protected:
-    virtual std::vector<double> optimize(const Matrix& input, const Matrix& target) override;
+    virtual std::vector<double> optimize(const Ref<const MatrixXd> input, const Ref<const VectorXd> target) override;
 
 private:
     struct Chunk {
-        Matrix input, target;
+        MatrixXd input;
+        VectorXd target;
     };
 
-    Params task(const Matrix& input, const Matrix& target) const;
+    Params task(const MatrixXd& input, const VectorXd& target) const;
 
-    std::vector<Chunk> get_data_chunks(const Matrix& input, const Matrix& target) const;
+    std::vector<Chunk> get_data_chunks(const Ref<const MatrixXd> input, const Ref<const VectorXd> target) const;
 
     std::vector<Params> optimize_parallel(const std::vector<Chunk>& chunks);
 

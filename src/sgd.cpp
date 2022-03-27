@@ -2,7 +2,7 @@
 
 namespace LinearRegression {
 
-std::vector<double> SGD::optimize(const Matrix& input, const Matrix& target)
+std::vector<double> SGD::optimize(const Ref<const MatrixXd> input, const Ref<const VectorXd> target)
 {
     std::vector<double> costs(this->num_epochs);
     for (unsigned epoch = 0; epoch < this->num_epochs; ++epoch) {

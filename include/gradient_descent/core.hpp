@@ -1,9 +1,14 @@
 #pragma once
 
-#include "gradient_descent/types.hpp"
+#include <Eigen/Dense>
+
+using Eigen::MatrixBase;
+using Eigen::MatrixXd;
+using Eigen::Ref;
+using Eigen::VectorXd;
 
 struct Params {
-    Matrix weight;
+    VectorXd weight;
     double bias;
 };
 
@@ -17,16 +22,16 @@ public:
 
     void set_params(const Params& params);
 
-    void init_params(const Matrix& input, const Matrix& target);
+    void init_params(const Ref<const MatrixXd> input, const Ref<const VectorXd> target);
 
-    Matrix compute_prediction(const Matrix& input) const;
+    VectorXd compute_prediction(const Ref<const MatrixXd> input) const;
 
-    double compute_cost(const Matrix& prediction, const Matrix& target) const;
+    double compute_cost(const Ref<const VectorXd> prediction, const Ref<const VectorXd> target) const;
 
-    void optimize_step(const Matrix& input, const Matrix& prediction, const Matrix& target);
+    void optimize_step(const Ref<const MatrixXd> input, const Ref<const VectorXd> prediction, const Ref<const VectorXd> target);
 
 private:
-    Params compute_grads(const Matrix& input, const Matrix& error) const;
+    Params compute_grads(const Ref<const MatrixXd> input, const Ref<const VectorXd> error) const;
 
     void update_params(const Params& grads);
 

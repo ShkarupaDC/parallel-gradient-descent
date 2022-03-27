@@ -3,9 +3,6 @@
 #include <future>
 #include <random>
 
-#include <xtensor/xbuilder.hpp>
-#include <xtensor/xview.hpp>
-
 #include "gradient_descent/parallel_sgd.hpp"
 
 namespace LinearRegression {
@@ -24,9 +21,9 @@ ParallelSGD::ParallelSGD(
 {
 }
 
-std::vector<ParallelSGD::Chunk> ParallelSGD::get_data_chunks(const Matrix& input, const Matrix& target) const
+std::vector<ParallelSGD::Chunk> ParallelSGD::get_data_chunks(const Ref<const MatrixXd> input, const Ref<const VectorXd> target) const
 {
-    int num_samples = input.shape(0);
+    int num_samples = input.rows();
     int split_size = ceil(num_samples / (float)num_threads);
 
     std::vector<Chunk> chunks;
@@ -37,14 +34,14 @@ std::vector<ParallelSGD::Chunk> ParallelSGD::get_data_chunks(const Matrix& input
         int end = std::min(start + split_size, num_samples);
 
         chunks.push_back({
-            xt::view(input, xt::range(start, end), xt::all()),
-            xt::view(target, xt::range(start, end), xt::all()),
+            input(Eigen::seq(start, end), Eigen::all),
+            target(Eigen::seq(start, end), Eigen::all),
         });
     }
     return chunks;
 }
 
-Params ParallelSGD::task(const Matrix& input, const Matrix& target) const
+Params ParallelSGD::task(const MatrixXd& input, const VectorXd& target) const
 {
     auto thread_core = core;
     for (unsigned epoch = 0; epoch < thread_epochs; ++epoch) {
@@ -76,12 +73,13 @@ std::vector<Params> ParallelSGD::optimize_parallel(const std::vector<Chunk>& chu
 
 void ParallelSGD::update_params(const std::vector<Params>& params)
 {
-    Matrix new_weight = std::transform_reduce(
-                            params.cbegin(),
-                            params.cend(),
-                            xt::zeros_like(get_params().weight),
-                            std::plus<>(),
-                            std::mem_fn(&Params::weight))
+    VectorXd new_weight = std::transform_reduce(
+                              params.cbegin(),
+                              params.cend(),
+                              VectorXd::Zero(get_params().weight.size()).eval(),
+                              std::plus<>(),
+                              std::mem_fn(&Params::weight))
+                              .array()
         / num_threads;
     double new_bias = std::transform_reduce(
                           params.cbegin(),
@@ -93,9 +91,9 @@ void ParallelSGD::update_params(const std::vector<Params>& params)
     core.set_params({ std::move(new_weight), new_bias });
 }
 
-std::vector<double> ParallelSGD::optimize(const Matrix& input, const Matrix& target)
+std::vector<double> ParallelSGD::optimize(const Ref<const MatrixXd> input, const Ref<const VectorXd> target)
 {
-    auto engine = std::default_random_engine();
+    std::default_random_engine engine;
     std::vector<double> costs(num_epochs);
 
     auto chunks = get_data_chunks(input, target);

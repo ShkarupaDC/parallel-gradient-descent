@@ -20,7 +20,7 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     for filename, data in zip(FILENAMES, data_split):
-        np.save(str(out_dir / filename), data)
+        np.savetxt(str(out_dir / f"{filename}.csv"), data, delimiter=",")
 
 
 if __name__ == "__main__":

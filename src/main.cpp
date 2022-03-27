@@ -1,14 +1,10 @@
 #include <filesystem>
-#include <fstream>
 #include <memory>
-#include <sstream>
-#include <stdexcept>
-
-#include <xtensor/xnpy.hpp>
 
 #include "arg_parser.hpp"
 #include "gradient_descent/parallel_sgd.hpp"
 #include "gradient_descent/sgd.hpp"
+#include "io.hpp"
 
 using namespace LinearRegression;
 namespace fs = std::filesystem;
@@ -30,17 +26,13 @@ void make_prediction(const po::variables_map& args)
         regression = std::make_unique<ParallelSGD>(num_epochs, learning_rate, weight_decay, normalize, num_step_epochs, num_threads);
     }
     // Fit
-    auto input_path = args["input-path"].as<std::string>();
-    auto target_path = args["target-path"].as<std::string>();
-
-    Matrix input = xt::load_npy<double>(input_path);
-    Matrix target = xt::load_npy<double>(target_path);
+    MatrixXd input = load_csv(args["input-path"].as<std::string>());
+    VectorXd target = load_csv(args["target-path"].as<std::string>());
     regression->fit(input, target);
 
     // Predict
-    auto eval_path = args["eval-path"].as<std::string>();
-    Matrix eval = xt::load_npy<double>(eval_path);
-    Matrix prediction = regression->predict(eval);
+    MatrixXd eval = load_csv(args["eval-path"].as<std::string>());
+    VectorXd prediction = regression->predict(eval);
 
     fs::path out_path(args["out-path"].as<std::string>());
     auto parent_dir = out_path.parent_path();
@@ -48,7 +40,7 @@ void make_prediction(const po::variables_map& args)
     if (!fs::is_directory(parent_dir) || !fs::exists(parent_dir)) {
         fs::create_directories(parent_dir);
     }
-    xt::dump_npy(out_path, prediction);
+    dump_csv(out_path, prediction);
 }
 
 int main(int argc, char* argv[])

@@ -1,7 +1,6 @@
 #include "profiler.hpp"
 
 #include "gradient_descent/interface.hpp"
-#include "gradient_descent/utils.hpp"
 
 namespace LinearRegression {
 
@@ -15,17 +14,17 @@ Interface::Interface(unsigned num_epochs, double learning_rate, double weight_de
     }
 }
 
-void Interface::fit(const Matrix& input, const Matrix& target)
+void Interface::fit(const Ref<const MatrixXd> input, const Ref<const VectorXd> target)
 {
     core.init_params(input, target);
-    auto processed = normalize ? scaler.fit_transform(input) : input;
+    auto processed = normalize ? scaler.fit_transform(input) : input.eval();
     LOG_DURATION("SGD");
     optimize(processed, target);
 }
 
-Matrix Interface::predict(const Matrix& input) const
+VectorXd Interface::predict(const Ref<const MatrixXd> input) const
 {
-    return core.compute_prediction(normalize ? scaler.transform(input) : input);
+    return core.compute_prediction(normalize ? scaler.transform(input) : input.eval());
 }
 
 const Params& Interface::get_params() const

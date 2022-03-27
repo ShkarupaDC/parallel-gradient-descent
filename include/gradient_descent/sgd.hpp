@@ -9,7 +9,7 @@ public:
     using Interface::Interface;
 
 protected:
-    virtual std::vector<double> optimize(const Matrix& input, const Matrix& target) override;
+    virtual std::vector<double> optimize(const Ref<const MatrixXd> input, const Ref<const VectorXd> target) override;
 };
 
 }

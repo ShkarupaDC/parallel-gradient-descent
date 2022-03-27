@@ -1,8 +1,7 @@
 #pragma once
 
 #include "gradient_descent/core.hpp"
-#include "gradient_descent/types.hpp"
-#include "gradient_descent/utils.hpp"
+#include "gradient_descent/scaler.hpp"
 
 namespace LinearRegression {
 
@@ -12,14 +11,14 @@ public:
 
     virtual ~Interface() = default;
 
-    void fit(const Matrix& input, const Matrix& target);
+    void fit(const Ref<const MatrixXd> input, const Ref<const VectorXd> target);
 
-    Matrix predict(const Matrix& input) const;
+    VectorXd predict(const Ref<const MatrixXd> input) const;
 
     const Params& get_params() const;
 
 protected:
-    virtual std::vector<double> optimize(const Matrix& input, const Matrix& target) = 0;
+    virtual std::vector<double> optimize(const Ref<const MatrixXd> input, const Ref<const VectorXd> target) = 0;
 
     const unsigned num_epochs;
     const bool normalize;

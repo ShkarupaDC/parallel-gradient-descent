@@ -28,39 +28,18 @@ set(SOURCES
     src/sgd.cpp
     src/parallel_sgd.cpp
     src/thread_pool.cpp
-    src/utils.cpp
-    src/arg_parser.cpp)
-add_executable(gradient_descent ${SOURCES})
+    src/scaler.cpp)
+add_executable(${PROJECT_NAME} ${SOURCES})
 
-# C++ threads
+# External packages (C++ threads, Eigen, Boost program options)
 find_package(Threads REQUIRED)
-
-# Xtensor
-find_package(xtl REQUIRED)
-find_package(xtensor REQUIRED)
-
-# Xtensor-BLAS
-add_definitions(-DHAVE_CBLAS=1)
-
-if(WIN32)
-  find_package(OpenBLAS REQUIRED)
-  set(BLAS_LIBRARIES ${CMAKE_INSTALL_PREFIX}${OpenBLAS_LIBRARIES})
-else()
-  find_package(BLAS REQUIRED)
-  find_package(LAPACK REQUIRED)
-endif()
-
-message(STATUS "BLAS VENDOR:    " ${BLA_VENDOR})
-message(STATUS "BLAS LIBRARIES: " ${BLAS_LIBRARIES})
-
-# Boost
+find_package (Eigen3 3.4 REQUIRED NO_MODULE)
 find_package(Boost 1.78 REQUIRED COMPONENTS program_options)
 
 # Include headers
-set(INCLUDES include src ${xtensor_INCLUDE_DIRS})
-target_include_directories(gradient_descent PUBLIC ${INCLUDES})
+set(INCLUDES include src)
+target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDES})
 
 # Link external libraries
-set(LIBRARIES Threads::Threads xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}
-              Boost::program_options)
-target_link_libraries(gradient_descent PUBLIC ${LIBRARIES})
+set(LIBRARIES Threads::Threads Eigen3::Eigen Boost::program_options)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${LIBRARIES})
