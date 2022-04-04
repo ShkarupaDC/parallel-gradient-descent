@@ -14,12 +14,12 @@ Interface::Interface(unsigned num_epochs, double learning_rate, double weight_de
     }
 }
 
-void Interface::fit(const Ref<const MatrixXd> input, const Ref<const VectorXd> target)
+std::vector<double> Interface::fit(const Ref<const MatrixXd> input, const Ref<const VectorXd> target)
 {
     core.init_params(input, target);
     auto processed = normalize ? scaler.fit_transform(input) : input.eval();
-    LOG_DURATION("SGD");
-    optimize(processed, target);
+    LOG_DURATION("Time");
+    return optimize(processed, target);
 }
 
 VectorXd Interface::predict(const Ref<const MatrixXd> input) const

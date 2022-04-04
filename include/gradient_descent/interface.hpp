@@ -11,7 +11,7 @@ public:
 
     virtual ~Interface() = default;
 
-    void fit(const Ref<const MatrixXd> input, const Ref<const VectorXd> target);
+    std::vector<double> fit(const Ref<const MatrixXd> input, const Ref<const VectorXd> target);
 
     VectorXd predict(const Ref<const MatrixXd> input) const;
 

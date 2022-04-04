@@ -93,11 +93,13 @@ void ParallelSGD::update_params(const std::vector<Params>& params)
 
 std::vector<double> ParallelSGD::optimize(const Ref<const MatrixXd> input, const Ref<const VectorXd> target)
 {
-    std::default_random_engine engine;
-    std::vector<double> costs(num_epochs);
+    unsigned global_epochs = num_epochs / thread_epochs;
+    std::vector<double> costs(global_epochs);
 
     auto chunks = get_data_chunks(input, target);
-    for (unsigned epoch = 0; epoch < num_epochs / thread_epochs; ++epoch) {
+    std::default_random_engine engine;
+
+    for (unsigned epoch = 0; epoch < global_epochs; ++epoch) {
         std::shuffle(chunks.begin(), chunks.end(), engine);
 
         auto params = optimize_parallel(chunks);

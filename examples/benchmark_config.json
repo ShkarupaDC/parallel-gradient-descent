@@ -1,0 +1,19 @@
+{
+  "data": {
+    "param_set": [
+      {"num-train": 2000, "num-features": 25},
+      {"num-train": 5000, "num-features": 50},
+      {"num-train": 10000, "num-features": 100}
+    ]
+  },
+  "sgd": {
+    "param_set": [
+      {"num-threads": 15, "num-step-epochs": 100},
+      {"num-threads": 23, "num-step-epochs": 100}
+    ],
+    "param_space": {
+      "num-threads": [3, 7, 11],
+      "num-step-epochs": [10, 100]
+    }
+  }
+}
