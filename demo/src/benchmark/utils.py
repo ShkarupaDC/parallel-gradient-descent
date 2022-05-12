@@ -1,3 +1,4 @@
+import statistics
 import itertools
 import subprocess
 import re
@@ -7,6 +8,7 @@ from argparse import Namespace
 from typing import Any, Callable, Optional, Union
 
 TIME_REGEX = re.compile("(?<=: )\d+(?= \S+$)")
+REPEATS = 5
 IGNORE_PARAMS = ["input-path", "target-path"]
 
 
@@ -111,7 +113,7 @@ def run_command(
 
 
 def format_output(
-    name: str, duration: float, params: Optional[Params] = None
+    name: str, duration: str, params: Optional[Params] = None
 ) -> str:
     params_str = (
         dict_to_str(params, IGNORE_PARAMS) if params is not None else ""
@@ -126,9 +128,16 @@ def run_sgd_once(
     config_path = getattr(args, f"{name}_config")
 
     config_option = ["--config", config_path]
-    stdout = run_command(args.binary, params, config_option, stdout=True)
+    durations = [None] * REPEATS
 
-    duration = parse_duration(stdout)
+    for idx in range(REPEATS):
+        stdout = run_command(args.binary, params, config_option, stdout=True)
+        durations[idx] = parse_duration(stdout)
+
+    mean = statistics.mean(durations)
+    std = statistics.stdev(durations)
+
+    duration = f"{mean} +- {std:.3f}"
     print(format_output(name.title(), duration, params))
 
 

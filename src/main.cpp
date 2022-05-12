@@ -22,17 +22,18 @@ void make_prediction(const po::variables_map& args)
 {
     // Regression
     auto num_epochs = args["num-epochs"].as<unsigned>();
+    auto batch_size = args["batch-size"].as<int>();
     auto learning_rate = args["lr"].as<double>();
     auto weight_decay = args["weight-decay"].as<double>();
     auto normalize = args["normalize"].as<bool>();
 
     std::unique_ptr<Interface> regression;
     if (!args["parallel"].as<bool>()) {
-        regression = std::make_unique<SGD>(num_epochs, learning_rate, weight_decay, normalize);
+        regression = std::make_unique<SGD>(num_epochs, batch_size, learning_rate, weight_decay, normalize);
     } else {
         auto num_threads = args["num-threads"].as<unsigned>();
         auto num_step_epochs = args["num-step-epochs"].as<unsigned>();
-        regression = std::make_unique<ParallelSGD>(num_epochs, learning_rate, weight_decay, normalize, num_step_epochs, num_threads);
+        regression = std::make_unique<ParallelSGD>(num_epochs, batch_size, learning_rate, weight_decay, normalize, num_step_epochs, num_threads);
     }
     // Fit
     MatrixXd input = load_csv(args["input-path"].as<std::string>());

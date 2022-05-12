@@ -10,8 +10,9 @@ namespace LinearRegression {
 
 class ParallelSGD : public Interface {
 public:
-    explicit ParallelSGD(
+    ParallelSGD(
         unsigned num_epochs,
+        int batch_size,
         double learning_rate,
         double weight_decay,
         bool normalize,
@@ -22,18 +23,13 @@ protected:
     virtual std::vector<double> optimize(const Ref<const MatrixXd> input, const Ref<const VectorXd> target) override;
 
 private:
-    struct Chunk {
-        MatrixXd input;
-        VectorXd target;
-    };
-
     Params task(const MatrixXd& input, const VectorXd& target) const;
 
-    std::vector<Chunk> get_data_chunks(const Ref<const MatrixXd> input, const Ref<const VectorXd> target) const;
+    std::vector<Batch> get_thread_batches(const MatrixXd& input, const VectorXd& target) const;
 
-    std::vector<Params> optimize_parallel(const std::vector<Chunk>& chunks);
+    std::vector<Params> optimize_parallel(const std::vector<Batch>& thread_bacthes);
 
-    void update_params(const std::vector<Params>& params);
+    void average_params(const std::vector<Params>& params);
 
     ThreadPool pool;
     const unsigned thread_epochs;

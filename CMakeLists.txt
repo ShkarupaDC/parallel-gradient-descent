@@ -28,6 +28,7 @@ set(SOURCES
     src/sgd.cpp
     src/parallel_sgd.cpp
     src/thread_pool.cpp
+    src/early_stopping.cpp
     src/scaler.cpp)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
