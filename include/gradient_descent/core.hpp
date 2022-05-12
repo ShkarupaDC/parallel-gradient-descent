@@ -16,7 +16,7 @@ namespace LinearRegression {
 
 class Core {
 public:
-    explicit Core(double learning_rate, double weight_decay) noexcept;
+    Core(double learning_rate, double weight_decay) noexcept;
 
     const Params& get_params() const;
 

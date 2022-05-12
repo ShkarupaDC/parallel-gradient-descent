@@ -1,19 +1,19 @@
 import numpy as np
 from pathlib import Path
 
-from src.regression import generate_data
-from src.parser import get_parser
+from src.gen_data.regression import generate_data
+from src.gen_data.parser import get_parser
 
-FILENAMES = ["x_train", "x_eval", "y_train", "y_eval"]
+FILENAMES = ["x_train", "y_train", "x_eval", "y_eval"]
 
 
 def main() -> None:
     args = get_parser().parse_args()
 
     data_split = generate_data(
-        n_train=args.n_train,
-        n_eval=args.n_eval,
-        n_features=args.n_features,
+        num_train=args.num_train,
+        num_eval=args.num_eval,
+        num_features=args.num_features,
         seed=args.seed,
     )
     out_dir = Path(args.out_dir)

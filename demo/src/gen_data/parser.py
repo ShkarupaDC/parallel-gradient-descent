@@ -7,10 +7,9 @@ def get_parser() -> argparse.ArgumentParser:
         description="Generate train and test data for linear regression model",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser._optionals.title = "Tool arguments"
     parser.add_argument(
         "-t",
-        "--n-train",
+        "--num-train",
         type=int,
         metavar="",
         default=1000,
@@ -18,15 +17,15 @@ def get_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "-e",
-        "--n-eval",
+        "--num-eval",
         type=int,
         metavar="",
-        default=100,
+        default=0,
         help="number of evaluation samples",
     )
     parser.add_argument(
         "-f",
-        "--n-features",
+        "--num-features",
         type=int,
         default=10,
         metavar="",
